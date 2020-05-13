@@ -5,6 +5,7 @@ import libester.client : BesterClient;
 import std.conv : to;
 import std.json : JSONValue;
 import libmessage.message : Message;
+import std.string : cmp;
 
 public final class Exchanger : Thread
 {
@@ -29,6 +30,9 @@ public final class Exchanger : Thread
 
     /* Whether or not the connection is active */
     private bool isActive = true;
+
+    /* List of active types */
+    private string[] activeTypes;
 
     this(string address, ushort port)
     {
@@ -57,6 +61,10 @@ public final class Exchanger : Thread
             /* Compute the global ID */
             string globalID = messageType~to!(string)(messageID);
 
+            /* Get the message at this position */
+            Message message = messageQueue[globalID];
+            message.setReceived(messageData);
+
         }
         client.close();
     }
@@ -64,6 +72,18 @@ public final class Exchanger : Thread
     public void shutdown()
     {
         isActive = false;
+    }
+
+    private bool isTypeTracked(string type)
+    {
+        for(ulong i = 0; i < activeTypes.length; i++)
+        {
+            if(cmp(activeTypes[i], type) == 0)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void sendMessage(string type, JSONValue message)
@@ -76,6 +96,16 @@ public final class Exchanger : Thread
         {
             /* If not then add it. */
             idQueue[type] = 0;
+        }
+
+        /**
+        * Check if we are already tracking these types of
+        * messages.
+        */
+        if(!isTypeTracked(type))
+        {
+            /* If not then add it. */
+            activeTypes ~= type;
         }
 
         /* The queued message */
@@ -108,6 +138,7 @@ public final class Exchanger : Thread
 
     public JSONValue receiveMessage(string type)
     {
+        
         /* The received message */
         JSONValue receivedMessage;
 
