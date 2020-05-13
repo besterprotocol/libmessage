@@ -27,6 +27,9 @@ public final class Exchanger : Thread
     */
     private Message[string] messageQueue;
 
+    /* Whether or not the connection is active */
+    private bool isActive = true;
+
     this(string address, ushort port)
     {
         client = new BesterClient(address, port);
@@ -37,7 +40,17 @@ public final class Exchanger : Thread
     /* TODO: Implement me */
     private void startWatcher()
     {
+        while(isActive)
+        {
+            JSONValue receivedMessage;
+            receivedMessage = client.receive();
+        }
+        client.close();
+    }
 
+    public void shutdown()
+    {
+        isActive = false;
     }
 
     public void sendMessage(string type, JSONValue message)
@@ -82,7 +95,12 @@ public final class Exchanger : Thread
 
     public JSONValue receiveMessage(string type)
     {
+        /* The received message */
+        JSONValue receivedMessage;
 
+
+
+        return receivedMessage;
     }
 
 }
