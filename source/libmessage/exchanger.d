@@ -44,6 +44,19 @@ public final class Exchanger : Thread
         {
             JSONValue receivedMessage;
             receivedMessage = client.receive();
+
+            /* Get the message's type */
+            string messageType = receivedMessage["payload"]["type"].str();
+            
+            /* Get the message's data */
+            JSONValue messageData = receivedMessage["payload"]["data"];
+
+            /* Get the message's ID */
+            ulong messageID = to!(ulong)(messageData["id"].str());
+
+            /* Compute the global ID */
+            string globalID = messageType~to!(string)(messageID);
+
         }
         client.close();
     }
